@@ -50,7 +50,8 @@ app.get('/api/data', (req, res) => {
 app.post('/api/submit', (req, res) => {
     const newUser = req.body;
     
-    if (!newUser.name || newUser.choices.length !== 3) {
+    // UPDATED VALIDATION: Allow 1-3 choices (dynamically adapts to availability)
+    if (!newUser.name || !newUser.choices || newUser.choices.length < 1) {
         return res.status(400).json({ error: "Invalid data" });
     }
 
@@ -66,8 +67,6 @@ app.post('/api/submit', (req, res) => {
 
     res.json({ success: true, users });
 });
-
-// Reset route REMOVED. Restart Render service to clear data.
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
