@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Role Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .role-card { transition: all 0.2s; }
+        .role-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2 text-indigo-700 font-bold text-lg">
+                <i class="fa-solid fa-users-viewfinder"></i> TeamView
+            </div>
+            <div class="flex gap-2">
+                <button onclick="clearData()" class="text-xs text-slate-400 hover:text-red-500 font-medium px-2">
+                    Reset All
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 md:p-8">
+
+        <!-- VIEW 1: REGISTRATION FORM -->
+        <div id="view-register" class="max-w-xl mx-auto fade-in hidden">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-slate-900">Claim Your Role</h1>
+                <p class="text-slate-500 mt-2">Assignments are automatic based on First-Come-First-Served.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl border border-indigo-50 p-6 md:p-8">
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Your Name</label>
+                    <input type="text" id="user-name" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition" placeholder="e.g. Jordan Lee">
+                </div>
+
+                <div class="space-y-4 mb-8">
+                    <div class="p-4 border border-indigo-100 rounded-xl bg-indigo-50/30">
+                        <label class="flex justify-between text-xs font-bold text-indigo-600 mb-1 uppercase">
+                            <span>1st Choice (Priority)</span>
+                            <i class="fa-solid fa-star text-indigo-400"></i>
+                        </label>
+                        <select id="choice-1" class="role-select w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer">
+                            <option value="">Select Role...</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-blue-600 mb-1 uppercase">2nd Choice</label>
+                            <select id="choice-2" class="role-select w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
+                                <option value="">Select Role...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-teal-600 mb-1 uppercase">3rd Choice</label>
+                            <select id="choice-3" class="role-select w-full border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none cursor-pointer">
+                                <option value="">Select Role...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="submitPreference()" class="w-full bg-slate-900 hover:bg-indigo-600 text-white text-lg font-bold py-4 rounded-xl shadow-lg transition transform active:scale-[0.98]">
+                    Submit & View Dashboard
+                </button>
+                
+                <div class="mt-4 text-center">
+                    <button onclick="showDashboard()" class="text-sm text-slate-400 hover:text-indigo-600 underline">
+                        Skip to Dashboard (View Only)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: PUBLIC DASHBOARD -->
+        <div id="view-dashboard" class="fade-in hidden">
+            
+            <!-- Status Bar -->
+            <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Current Assignments</h2>
+                    <p class="text-sm text-slate-500">Updates live as members join.</p>
+                </div>
+                
+                <div id="user-status-panel" class="hidden bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-lg flex items-center gap-3">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-sm font-bold text-indigo-900">You are: <span id="my-name-display"></span></span>
+                    <button onclick="editMySubmission()" class="text-xs text-indigo-500 hover:text-indigo-700 underline ml-2">Edit</button>
+                </div>
+                <div id="join-panel" class="hidden">
+                    <button onclick="showRegister()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-6 py-2.5 rounded-full shadow-md transition">
+                        Join Team +
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- LEFT: Assigned Roles List -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div id="assignments-list" class="space-y-3">
+                        <!-- Assignment Cards Injected Here -->
+                    </div>
+                    
+                    <!-- Unassigned Warning -->
+                    <div id="conflict-box" class="hidden bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-amber-800">Pending Assignments</h3>
+                                <div class="mt-2 text-sm text-amber-700">
+                                    <p id="conflict-text">The following members did not get their top 3 choices:</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Role Availability Tracker -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 sticky top-24">
+                        <h3 class="font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Role Availability</h3>
+                        <div id="availability-list" class="space-y-2">
+                            <!-- Availability list injected here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Configuration ---
+        // UPDATED: Exact roles provided by the user
+        const roles = [
+            "Project Manager",
+            "Team Reviewer",
+            "Team Reference Check",
+            "Team Scheduler",
+            "Team Submitter",
+            "Team Organizer"
+        ];
+
+        const STORAGE_KEY = 'team_roles_data_v2'; // Changed key to ensure clean slate for new roles
+
+        // --- Data Logic ---
+        function getSubmissions() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveSubmission(data) {
+            const all = getSubmissions();
+            // Remove existing if updating
+            const filtered = all.filter(u => u.name !== data.name); 
+            filtered.push(data);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+            window.dispatchEvent(new Event("storage")); // Trigger updates
+        }
+
+        function clearData() {
+            if(confirm("Reset all team data? This cannot be undone.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                sessionStorage.removeItem('my_local_user');
+                window.dispatchEvent(new Event("storage"));
+                location.reload();
+            }
+        }
+
+        // --- App Logic ---
+        function init() {
+            // Populate dropdowns
+            const selects = document.querySelectorAll('.role-select');
+            selects.forEach(s => {
+                s.innerHTML = '<option value="">Select Role...</option>';
+                roles.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r; opt.textContent = r;
+                    s.appendChild(opt);
+                });
+            });
+
+            // Determine View
+            const myUser = sessionStorage.getItem('my_local_user');
+            if(myUser) {
+                showDashboard();
+            } else {
+                showRegister();
+            }
+
+            // Watch for updates from other tabs
+            window.addEventListener('storage', calculateAndRender);
+            
+            // Initial Render
+            calculateAndRender();
+        }
+
+        function showRegister() {
+            document.getElementById('view-register').classList.remove('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('view-register').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            calculateAndRender();
+        }
+
+        function submitPreference() {
+            const name = document.getElementById('user-name').value.trim();
+            const c1 = document.getElementById('choice-1').value;
+            const c2 = document.getElementById('choice-2').value;
+            const c3 = document.getElementById('choice-3').value;
+
+            if(!name || !c1 || !c2 || !c3) return alert("Please fill all fields");
+            if(c1 === c2 || c1 === c3 || c2 === c3) return alert("Roles must be different");
+
+            const user = {
+                id: Date.now(),
+                name: name,
+                choices: [c1, c2, c3],
+                timestamp: new Date().toISOString()
+            };
+
+            saveSubmission(user);
+            sessionStorage.setItem('my_local_user', name); // Track session
+            showDashboard();
+        }
+
+        function editMySubmission() {
+            if(confirm("Edit your choices? You will lose your current priority spot.")) {
+                sessionStorage.removeItem('my_local_user');
+                showRegister();
+            }
+        }
+
+        // --- The Core FCFS Algorithm ---
+        function calculateAndRender() {
+            const users = getSubmissions();
+            const assignmentsList = document.getElementById('assignments-list');
+            const availabilityList = document.getElementById('availability-list');
+            const conflictBox = document.getElementById('conflict-box');
+            
+            // Sort by ID (arrival time)
+            users.sort((a, b) => a.id - b.id);
+
+            const assignments = {}; // { Role: Name }
+            const processedUsers = []; // { name, role, rank, isConflict }
+            const unassignedNames = [];
+
+            // 1. Assign Roles
+            users.forEach(u => {
+                let role = null;
+                let rank = 0;
+
+                if (!assignments[u.choices[0]]) { role = u.choices[0]; rank = 1; }
+                else if (!assignments[u.choices[1]]) { role = u.choices[1]; rank = 2; }
+                else if (!assignments[u.choices[2]]) { role = u.choices[2]; rank = 3; }
+
+                if (role) {
+                    assignments[role] = u.name;
+                    processedUsers.push({ ...u, assignedRole: role, rank: rank });
+                } else {
+                    processedUsers.push({ ...u, assignedRole: null, rank: 0 });
+                    unassignedNames.push(u.name);
+                }
+            });
+
+            // 2. Render Assignments Grid
+            assignmentsList.innerHTML = '';
+            
+            if(processedUsers.length === 0) {
+                assignmentsList.innerHTML = `<div class="text-center p-8 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">No members have joined yet.</div>`;
+            }
+
+            processedUsers.forEach(u => {
+                const isMe = u.name === sessionStorage.getItem('my_local_user');
+                let statusHtml = '';
+                let cardClass = "bg-white border border-slate-200";
+                
+                if (u.assignedRole) {
+                    let badgeColor = u.rank === 1 ? 'bg-indigo-100 text-indigo-700' : (u.rank === 2 ? 'bg-blue-100 text-blue-700' : 'bg-teal-100 text-teal-700');
+                    let choiceLabel = u.rank === 1 ? '1st Choice' : (u.rank === 2 ? '2nd Choice' : '3rd Choice');
+                    
+                    statusHtml = `
+                        <div class="flex flex-col items-end">
+                            <span class="text-xs font-bold uppercase text-slate-400 mb-1">Assigned Role</span>
+                            <span class="text-lg font-bold text-slate-800">${u.assignedRole}</span>
+                            <span class="mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}">Got ${choiceLabel}</span>
+                        </div>
+                    `;
+                    if(isMe) cardClass = "bg-indigo-50 border border-indigo-200 ring-2 ring-indigo-100";
+                } else {
+                    statusHtml = `
+                        <div class="flex flex-col items-end">
+                            <span class="text-xs font-bold uppercase text-red-400 mb-1">Status</span>
+                            <span class="text-sm font-bold text-red-500">Needs Assignment</span>
+                            <span class="text-xs text-slate-400">Top 3 choices taken</span>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = `${cardClass} p-5 rounded-xl flex justify-between items-center shadow-sm role-card`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg">
+                            ${u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-800 text-lg">${u.name} ${isMe ? '<span class="text-xs bg-slate-800 text-white px-1.5 py-0.5 rounded ml-1">YOU</span>' : ''}</div>
+                            <div class="text-xs text-slate-400 font-mono">Joined: ${new Date(u.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                    ${statusHtml}
+                `;
+                assignmentsList.appendChild(card);
+            });
+
+            // 3. Render Availability List
+            availabilityList.innerHTML = '';
+            roles.forEach(r => {
+                const takenBy = assignments[r];
+                const row = document.createElement('div');
+                if (takenBy) {
+                    row.className = "flex justify-between items-center text-sm text-slate-400 line-through opacity-60";
+                    row.innerHTML = `<span>${r}</span> <span class="text-xs"><i class="fa-solid fa-check"></i> ${takenBy}</span>`;
+                } else {
+                    row.className = "flex justify-between items-center text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded";
+                    row.innerHTML = `<span>${r}</span> <span class="text-xs uppercase">Open</span>`;
+                }
+                availabilityList.appendChild(row);
+            });
+
+            // 4. Handle Conflicts
+            if(unassignedNames.length > 0) {
+                conflictBox.classList.remove('hidden');
+                document.getElementById('conflict-text').textContent = `Conflict: ${unassignedNames.join(', ')} could not be assigned any of their top 3 choices.`;
+            } else {
+                conflictBox.classList.add('hidden');
+            }
+
+            // 5. Update Header Controls
+            const myName = sessionStorage.getItem('my_local_user');
+            if(myName) {
+                document.getElementById('user-status-panel').classList.remove('hidden');
+                document.getElementById('join-panel').classList.add('hidden');
+                document.getElementById('my-name-display').textContent = myName;
+            } else {
+                document.getElementById('user-status-panel').classList.add('hidden');
+                document.getElementById('join-panel').classList.remove('hidden');
+            }
+        }
+
+        // Run
+        init();
+    </script>
+</body>
+</html>
