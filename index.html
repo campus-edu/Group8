@@ -23,11 +23,7 @@
             <div class="flex items-center gap-2 text-indigo-700 font-bold text-lg">
                 <i class="fa-solid fa-users-viewfinder"></i> Group8 Live
             </div>
-            <div class="flex gap-2">
-                <button onclick="resetServerData()" class="text-xs text-slate-400 hover:text-red-500 font-medium px-2">
-                    Reset Server
-                </button>
-            </div>
+            <!-- Reset button removed for security -->
         </div>
     </header>
 
@@ -143,10 +139,9 @@
                 roles.forEach(r => s.innerHTML += `<option value="${r}">${r}</option>`);
             });
 
-            // Check if we remember who the user is (stored in browser, not server)
+            // Check local session
             const savedName = sessionStorage.getItem('my_group_name');
             
-            // Start Polling Server for Data
             fetchData();
             pollingInterval = setInterval(fetchData, 2000); // Poll every 2 seconds
 
@@ -163,7 +158,7 @@
                 const res = await fetch('/api/data');
                 const data = await res.json();
                 
-                // Only re-render if data changed (simple check)
+                // Only re-render if data changed
                 if (JSON.stringify(data) !== JSON.stringify(currentData)) {
                     currentData = data;
                     renderDashboard(data);
@@ -204,7 +199,7 @@
                 if (res.ok) {
                     sessionStorage.setItem('my_group_name', name);
                     switchToDashboard();
-                    fetchData(); // Immediate refresh
+                    fetchData();
                 } else {
                     alert("Error submitting data");
                 }
@@ -213,15 +208,6 @@
             } finally {
                 btn.innerHTML = 'Submit & Join';
                 btn.disabled = false;
-            }
-        }
-
-        async function resetServerData() {
-            if (confirm("WARNING: This wipes all data for everyone. Continue?")) {
-                await fetch('/api/reset', { method: 'POST' });
-                fetchData();
-                sessionStorage.removeItem('my_group_name');
-                location.reload();
             }
         }
 
