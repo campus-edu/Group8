@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const fs = require('fs'); // Import File System module
+const fs = require('fs'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,13 +11,13 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+// --- IMPORTANT: Serve static files from the ROOT folder ---
+app.use(express.static(__dirname));
 
 // --- File-Based Database Logic ---
 let users = [];
 
-// 1. Load data from file on startup
+// Load data from file on startup
 if (fs.existsSync(DATA_FILE)) {
     try {
         const fileData = fs.readFileSync(DATA_FILE, 'utf8');
@@ -36,9 +36,9 @@ function saveToDisk() {
 
 // --- Routes ---
 
-// 1. Serve Frontend
+// 1. Serve the Frontend (from root)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // 2. API: Get Data
@@ -61,14 +61,13 @@ app.post('/api/submit', (req, res) => {
         users.push(newUser);
     }
 
-    // SAVE to file immediately
+    // Save immediately so data persists
     saveToDisk();
 
     res.json({ success: true, users });
 });
 
-// Note: Reset route has been REMOVED. 
-// To reset data, restart the Web Service in the Render Dashboard.
+// Reset route REMOVED. Restart Render service to clear data.
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
